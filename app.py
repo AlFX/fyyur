@@ -125,17 +125,43 @@ def show_venue(venue_id):
     # DONE: replace with real venue data from the venues table, using venue_id
 
     venue = Venue.query.filter_by(id=venue_id).first_or_404()
-    shows = check_shows(venue)
+
+    past_shows = db.session.query(Artist, Show).join(Show).join(Venue).\
+        filter(
+            Show.venue_id == venue_id,
+            Show.artist_id == Artist.id,
+            Show.start_time < datetime.now()
+        ).all()
+    past_shows = [{
+            'artist_id': artist.id,
+            "artist_name": artist.name,
+            "artist_image_link": artist.image_link,
+            "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M")
+        } for artist, show in past_shows]
+
+    upcoming_shows = db.session.query(Artist, Show).join(Show).join(Venue).\
+        filter(
+            Show.venue_id == venue_id,
+            Show.artist_id == Artist.id,
+            Show.start_time > datetime.now()
+        ).all()
+    upcoming_shows = [{
+            'artist_id': artist.id,
+            'artist_name': artist.name,
+            'artist_image_link': artist.image_link,
+            'start_time': show.start_time.strftime("%m/%d/%Y, %H:%M")
+        } for artist, show in upcoming_shows]
+
     # turn the list of Genre objects into a list of strings
     venue_genre = [genre.name for genre in list(venue.genre)]
     # convert the Venue object to its dict representation to assign items
     venue = venue.__dict__
     del venue["_sa_instance_state"]  # delete SQLAlchemy instance state
     venue["genres"] = venue_genre
-    venue["upcoming_shows"] = shows["upcoming_shows"]
-    venue["past_shows"] = shows["past_shows"]
-    venue["past_shows_count"] = shows["past_shows_count"]
-    venue["upcoming_shows_count"] = shows["upcoming_shows_count"]
+    venue["upcoming_shows"] = upcoming_shows
+    venue["upcoming_shows_count"] = len(upcoming_shows)
+    venue["past_shows"] = past_shows
+    venue["past_shows_count"] = len(past_shows)
 
     return render_template('pages/show_venue.html', venue=venue)
 
@@ -300,17 +326,44 @@ def show_artist(artist_id):
     # DONE: replace with real venue data from the venues table, using venue_id
 
     artist = Artist.query.filter_by(id=artist_id).first_or_404()
-    shows = check_shows(artist)
+
+    past_shows = db.session.query(Venue, Show).join(Show).join(Artist).\
+        filter(
+            Show.artist_id == artist_id,
+            Show.venue_id == Venue.id,
+            Show.start_time < datetime.now()
+        ).all()
+    past_shows = [{
+            'venue_id': venue.id,
+            "venue_name": venue.name,
+            "venue_image_link": venue.image_link,
+            "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M")
+        } for venue, show in past_shows]
+
+    upcoming_shows = db.session.query(Venue, Show).join(Show).join(Artist).\
+        filter(
+            Show.artist_id == artist_id,
+            Show.venue_id == Venue.id,
+            Show.start_time > datetime.now()
+        ).all()
+    upcoming_shows = [{
+            'venue_id': venue.id,
+            "venue_name": venue.name,
+            "venue_image_link": venue.image_link,
+            "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M")
+        } for venue, show in upcoming_shows]
+
+    # shows = check_shows(artist)
     # turn the list of Genre objects into a list of strings
     artist_genre = [genre.name for genre in list(artist.genre)]
     # convert the Venue object to its dict representation to assign items
     artist = artist.__dict__
     del artist["_sa_instance_state"]  # delete SQLAlchemy instance state
     artist["genres"] = artist_genre
-    artist["upcoming_shows"] = shows["upcoming_shows"]
-    artist["past_shows"] = shows["past_shows"]
-    artist["past_shows_count"] = shows["past_shows_count"]
-    artist["upcoming_shows_count"] = shows["upcoming_shows_count"]
+    artist["upcoming_shows"] = upcoming_shows
+    artist["upcoming_shows_count"] = len(upcoming_shows)
+    artist["past_shows"] = past_shows
+    artist["past_shows_count"] = len(past_shows)
 
     return render_template('pages/show_artist.html', artist=artist)
 
