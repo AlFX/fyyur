@@ -71,12 +71,14 @@ def venues():
 
         queried_venues = Venue.query.filter_by(city=area[0]).all()
         for venue in queried_venues:
-            num_upcoming_shows = count_shows(venue.show)["upcoming"]
+            # num_upcoming_shows = count_shows(venue.show)["upcoming"]
+            upcoming_shows = Show.query.join(Venue).filter(Show.venue_id == venue.id)\
+                .filter(Show.start_time > datetime.now()).all()
 
             inner_result = {
                 "id": venue.id,
                 "name": venue.name,
-                "num_upcoming_shows": num_upcoming_shows
+                "num_upcoming_shows": len(upcoming_shows)
             }
 
             result["venues"].append(inner_result)
@@ -99,10 +101,13 @@ def search_venues():
 
     data = list()
     for venue in venues:
+        upcoming_shows = Show.query.join(Venue).filter(Show.venue_id == venue.id)\
+                .filter(Show.start_time > datetime.now()).all()
         venue_data = {
             "id": venue.id,
             "name": venue.name,
-            "num_upcoming_shows": count_shows(venue.show)["upcoming"]
+            # "num_upcoming_shows": count_shows(venue.show)["upcoming"]
+            "num_upcoming_shows": len(upcoming_shows)
         }
         data.append(venue_data)
     response = {
@@ -270,10 +275,14 @@ def search_artists():
 
     data = list()
     for artist in artists:
+        upcoming_shows = Show.query.join(Artist).filter(Show.artist_id == artist.id)\
+            .filter(Show.start_time > datetime.now()).all()
+
         artist_data = {
             "id": artist.id,
             "name": artist.name,
-            "num_upcoming_shows": count_shows(artist.show)["upcoming"]
+            "num_upcoming_shows": len(upcoming_shows)
+            # "num_upcoming_shows": count_shows(artist.show)["upcoming"]
         }
         data.append(artist_data)
     response = {
@@ -404,7 +413,8 @@ def edit_venue_submission(venue_id):
         venue.name = form.name.data.strip()
         venue.city = form.city.data.strip()
         venue.state = form.state.data
-        venue.phone = re.sub("\D", "", form.phone.data.strip())  # strip non-digits
+        # strip non-digits
+        venue.phone = re.sub("\D", "", form.phone.data.strip())
         venue.genre = genres
         venue.address = form.address.data.strip()
         venue.seeking_talent = True if form.seeking_talent.data == "Yes" else False
