@@ -1,13 +1,18 @@
 import os
+
 SECRET_KEY = os.urandom(32)
-# Grabs the folder where the script runs.
-basedir = os.path.abspath(os.path.dirname(__file__))
+basedir = os.path.abspath(os.path.dirname(__file__))  # the script folder
+SQLALCHEMY_TRACK_MODIFICATIONS = False  # Disable track modifications warning
+DEBUG = True  # automatically restarts the app upon modifications
 
-# Enable debug mode.
-DEBUG = True
 
-# Connect to the database
+class DatabaseURI:
+    # Connect to the database
+    DATABASE_NAME = "fyyur"
+    username = "postgres"
+    password = "postgres"
+    url = "localhost:5432"
+    SQLALCHEMY_DATABASE_URI = f"postgres://{username}:{password}@{url}/{DATABASE_NAME}"
+    # SQLALCHEMY_DATABASE_URI = "postgres://postgres:postgres@localhost:5432/fyyur"
 
 # DONE implement database url
-SQLALCHEMY_DATABASE_URI = "postgres://postgres:postgres@localhost:5432/fyyur"
-SQLALCHEMY_TRACK_MODIFICATIONS = False
